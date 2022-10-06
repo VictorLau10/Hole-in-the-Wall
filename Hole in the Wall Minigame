@@ -1,0 +1,142 @@
+//Constants
+var score = 0;
+var wallHeight = 50;
+var wall = new Rectangle(getWidth(), wallHeight);
+var spaceWidth = getWidth() / 4;
+var space = new Rectangle(spaceWidth, wallHeight);
+var gameStarted = false;
+var SPEED = 4;
+var DELAY = 20;
+var diff = 0;
+var difficulty = 1;
+var difficultyText;
+var smallestWidth = 30;
+var score = 0;
+var scoreText;
+var smallIncrease = 1;
+var bigIncrease = 4;
+var cx = getWidth() / 2;
+var cy = getHeight() / 2;
+var BUFFER = 10;
+var BUFFER_2 = 225;
+
+function start() {
+    //Pre-game message
+    println("Avoid the red boxes with your mouse. Keep moving the");
+    println("mouse to play the game and stop moving it to stop stages ");
+    println("from coming. Stages get quicker and harder as you move on!");
+    println("Click to start the game. ");
+    setUpGame();
+    mouseClickMethod(startGame);
+    mouseMoveMethod(detectCrash);
+}
+
+function startGame() {
+    //Makes sure the timer only starts once
+    if (gameStarted == false) {
+        setTimer(moveWall, DELAY);
+        gameStarted = true;
+    }
+}
+
+//Puts wall, space, score, and difficulty on screen
+function setUpGame() {
+    makeWall();
+    makeSpace();
+    makeScore();
+    makeDifficulty();
+}
+
+//Removes wall, space, score, and difficulty on screen
+function clearGame() {
+    remove(wall);
+    remove(space);
+    remove(scoreText);
+    remove(difficultyText);
+}
+
+//Makes a wall at (0, 0)
+function makeWall() {
+    wall.setPosition(0, 0);
+    wall.setColor(Color.red);
+    add(wall);
+}
+
+//Makes a space at a random spot in the wall
+function makeSpace() {
+    space.setWidth(spaceWidth);
+    space.setPosition(Randomizer.nextInt(0, getWidth() - spaceWidth), 0);
+    space.setColor(Color.white);
+    add(space);
+}
+
+//Displays the score on the screen
+function makeScore() {
+    scoreText = new Text("", "20pt Arial");
+    scoreText.setPosition(BUFFER, (scoreText.getHeight()) + BUFFER);
+    scoreText.setText("Score: " + score);
+    add(scoreText);
+}
+
+//Displays the difficulty on the screen
+function makeDifficulty() {
+    difficultyText = new Text("", "20pt Arial"); 
+    difficultyText.setPosition(getHeight() - BUFFER_2, difficultyText.getHeight() + BUFFER);
+    difficultyText.setText("Difficulty: " + difficulty);
+    add(difficultyText);
+    if (difficulty == 10) {
+        difficultyText.move(-BUFFER, 0);
+    }
+}
+
+//Moves wall
+function moveWall() {
+    wall.move(0, SPEED);
+    space.move(0, SPEED);
+}
+
+//Detects if there is a crash or if the wall is past the bottom of the screen and resets it if it is
+function detectCrash(e) {
+    var elem = getElementAt(e.getX(), e.getY());
+    if (gameStarted == true) {
+        if (elem == wall) {
+            stopTimer(moveWall);
+            endScreen();
+        }
+    }
+    if (wall.getY() > getHeight()) {
+        score++;
+        difficultyChange();
+        clearGame();
+        setUpGame();
+    } 
+}
+
+//Changes the width of the space and the speed the wall comes at
+function difficultyChange() {
+    if (score % 2 == 0) {
+        if (spaceWidth > smallestWidth) {
+            spaceWidth -= 2;
+            difficulty += smallIncrease;
+        }
+    }
+    if (score % 10 == 0) {
+        SPEED++;
+        difficulty += bigIncrease;
+    }
+    if (score % 20 == 0) {
+        DELAY -= bigIncrease;
+    }
+}
+
+//Removes everything and displays end screen
+function endScreen() {
+    removeAll();
+    var deathMessage = new Text("You died! :o");
+    deathMessage.setPosition(cx - (deathMessage.getWidth() / 2), cy - (deathMessage.getHeight() * 2));
+    deathMessage.setColor(Color.red);
+    add(deathMessage);
+    
+    scoreText.setPosition(cx - (scoreText.getWidth() / 2), cy + (scoreText.getHeight() * 2));
+    add(scoreText);
+}
